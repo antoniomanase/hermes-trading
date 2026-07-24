@@ -1,0 +1,39 @@
+# Evolving strategy — Hermes may change EXACTLY ONE leaf per reflection, and
+# ONLY within signal.* or risk.* (never the TopStep hard limits in goal.yaml).
+# v03: switched entry from RSI threshold to Lorentzian Classification + a
+# consistency-first TopStep risk model. Lineage: v01/v02 were RSI (see history/).
+version: "03"
+
+signal:
+  type: lorentzian
+  neighbors: 8              # k nearest neighbours (jdehorty default)
+  max_bars_back: 2000
+  feature_series:
+    - {kind: rsi, a: 14, b: 1}
+    - {kind: wt,  a: 10, b: 11}
+    - {kind: cci, a: 20, b: 1}
+    - {kind: adx, a: 20, b: 2}
+    - {kind: rsi, a: 9,  b: 1}
+  filters:
+    volatility: true
+    regime: true
+    regime_threshold: -0.1
+    adx: false
+    adx_threshold: 20
+  kernel:
+    enabled: true
+    lookback: 8
+    relative_weight: 8.0
+    regression_level: 25
+    lag: 2
+
+risk:
+  # Consistency-first: low reward:risk, high win rate, size off the buffer.
+  reward_risk_ratio: 1.0         # TP = 1.0 x stop distance (win-rate-max)
+  stop_atr_mult: 1.5             # stop = 1.5 x ATR
+  atr_period: 14
+  risk_pct_of_buffer_min: 0.08   # cold start / low win rate: 8% of $3k buffer
+  risk_pct_of_buffer_max: 0.20   # confirmed >=65% win rate: up to 20%
+  win_rate_target: 0.65
+  win_rate_window: 20
+  max_trades_per_day: 5          # several small trades loosen the EOD trail

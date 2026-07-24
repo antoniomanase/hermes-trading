@@ -1,0 +1,45 @@
+# Locked in by the operator (paper mode). The IMMUTABLE spec — Hermes may never
+# edit this file. Success = reach the profit target respecting every rule.
+# Failure = breach the trailing Maximum Loss Limit.
+assets:
+  - symbol: "MNQ"            # Micro E-mini Nasdaq-100
+    feed: "NQ=F"             # yfinance continuous front-month proxy
+    point_value: 2.0         # $2 per index point
+    tick_size: 0.25          # 0.25 pt = $0.50 per tick
+    commission_per_side: 0.37  # ~$0.74 round-turn (TopStep micro + fees)
+  - symbol: "MGC"            # Micro Gold
+    feed: "GC=F"             # yfinance continuous front-month proxy
+    point_value: 10.0        # $10 per 1.0 point (10 oz contract)
+    tick_size: 0.10          # 0.10 pt = $1.00 per tick
+    commission_per_side: 0.37  # ~$0.74 round-turn (TopStep micro + fees)
+
+# Fill realism — paper P&L must reflect real costs or it lies (verify current
+# TopStep rates; micros were ~$0.50 commission + fees round-turn in 2026).
+costs:
+  slippage_ticks: 1          # adverse ticks applied to EACH fill (entry & exit)
+
+# --- TopStep Trading Combine — $100K account (verified 2026) ---------------
+# The whole point of the risk engine. Passing is about consistency + staying
+# inside these limits, NOT win rate or raw profit.
+topstep:
+  account_size:          100000
+  profit_target:         6000     # objective: reach this to pass
+  trailing_mll:          3000     # HARD RULE — EOD trailing Max Loss Limit
+  daily_loss_limit:      2000     # objective — includes unrealized P&L
+  consistency_pct:       0.50     # best day must stay < 50% of profit target
+  max_contracts:         10
+  daily_soft_stop_pct:   0.60     # stop opening new trades at -$1,200
+  daily_hard_stop_pct:   0.75     # force-flatten the day at -$1,500
+  daily_profit_cap_pct:  0.40     # stop new risk once +$2,400 (consistency guard)
+  trailing_floor_buffer: 300      # keep >= $300 above the trailing floor
+
+# Objective priorities the scorer optimizes for (consistency-first).
+objective:
+  priority:        "pass_combine"
+  win_rate_target: 0.65
+  reward_risk_max: 1.5            # never chase a higher R:R than this
+  low_variance:    true
+
+reflection_every:  30             # closed trades per reflection cycle
+one_variable_only: true           # scientific-method guardrail
+mode:              "paper"        # never live until .env flags are flipped

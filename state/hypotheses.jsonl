@@ -1,0 +1,1 @@
+{"mode": "fallback", "variable": "entry.threshold", "from": 30.0, "to": 32.0, "rationale": "return 0.000 < target 0.050 -> loosen entry threshold", "score_before": 0.0, "n_trades": 0, "ts": "2026-07-20T21:28:32.775598+00:00", "from_version": "01", "to_version": "02"}
