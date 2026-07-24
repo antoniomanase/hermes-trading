@@ -1,1 +1,1 @@
-{"status":"init","ts":null}
+{"status": "ok", "ts": "2026-07-24T04:19:35.597464+00:00", "positions": [], "strategy_version": "03", "signals": {"MNQ": 0}, "balance": 100000.0, "equity": 99788.0, "trailing_floor": 97000.0, "day_pnl": -212.0, "day_trades": 0, "eod_peak": 100000.0, "best_day": 0.0, "profit_progress": 0.0, "passed": false}
