@@ -27,6 +27,7 @@ from . import reflect, state_dir
 from .adapters import SchemaError, macro, news, onchain, price
 from .risk.topstep import TopStepEngine
 from .signals import lorentzian
+from .base44_client import Base44Client
 
 CYCLE_SECONDS = 60
 MAX_CONSEC_FAILURES = 5
@@ -75,6 +76,8 @@ class Worker:
         self.tg_token = os.getenv("TELEGRAM_BOT_TOKEN")
         self.tg_chat = os.getenv("TELEGRAM_CHAT_ID")
         self._last_status_mono = 0.0
+         # Live price streaming to base44 TradeStream AI
+        self.base44 = Base44Client()
 
     # -- io ---------------------------------------------------------------
     def _strategy(self) -> dict:
@@ -217,6 +220,10 @@ class Worker:
             last = px["last"]
             if last is None:
                 continue
+
+            #Stream price tick to base44 live dashboard
+            await self.base44.post_tick(symbol, last)
+          
             sig = lorentzian.classify(px, sig_cfg)
             a = lorentzian.atr(np.asarray(px["highs"], float),
                                np.asarray(px["lows"], float),
