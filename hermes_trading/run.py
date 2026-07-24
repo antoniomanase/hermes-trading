@@ -1,9 +1,4 @@
-"""Entrypoint. Reads goal.yaml, starts the loop and API server.
-
-Usage:
-  python -m hermes_trading.run                 # all assets from goal.yaml
-  python -m hermes_trading.run --asset MNQ     # restrict to one configured symbol
-"""
+"""Entrypoint. Reads goal.yaml, starts the loop and API server."""
 from __future__ import annotations
 
 import argparse
@@ -23,7 +18,7 @@ def load_goal() -> dict:
 
 def resolve_assets(goal: dict, only: str | None) -> list[dict]:
     assets = goal.get("assets")
-    if not assets:  # back-compat with a single-asset goal.yaml
+    if not assets:
         assets = [{"symbol": goal.get("asset", "MNQ"),
                    "feed": goal.get("feed", "NQ=F")}]
     if only:
