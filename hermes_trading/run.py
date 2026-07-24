@@ -1,4 +1,4 @@
-"""Entrypoint. Reads goal.yaml, starts the loop.
+"""Entrypoint. Reads goal.yaml, starts the loop and API server.
 
 Usage:
   python -m hermes_trading.run                 # all assets from goal.yaml
@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 
+import uvicorn
 import yaml
 
-from . import state_dir
+from . import api_server, state_dir
 from .loop import Worker
 
 
@@ -31,7 +33,7 @@ def resolve_assets(goal: dict, only: str | None) -> list[dict]:
     return assets
 
 
-def main() -> None:
+async def main_async() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--asset", default=None,
                         help="restrict to one configured symbol (e.g. MNQ)")
@@ -40,7 +42,19 @@ def main() -> None:
     goal = load_goal()
     assets = resolve_assets(goal, args.asset)
     worker = Worker(assets=assets, goal=goal)
-    asyncio.run(worker.run_forever())
+
+    port = int(os.getenv("PORT", 8000))
+    config = uvicorn.Config(api_server.app, host="0.0.0.0", port=port, log_level="warning")
+    server = uvicorn.Server(config)
+
+    await asyncio.gather(
+        worker.run_forever(),
+        server.serve()
+    )
+
+
+def main() -> None:
+    asyncio.run(main_async())
 
 
 if __name__ == "__main__":
