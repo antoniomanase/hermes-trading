@@ -222,7 +222,7 @@ class Worker:
                 continue
 
             #Stream price tick to base44 live dashboard
-            await self.base44.post_tick(symbol, last)
+            await self.base44.post_price_tick(symbol, last)
           
             sig = lorentzian.classify(px, sig_cfg)
             a = lorentzian.atr(np.asarray(px["highs"], float),
