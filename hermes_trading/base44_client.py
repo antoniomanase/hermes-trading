@@ -1,33 +1,80 @@
-"""Base44 API client for streaming live price ticks to TradeStream AI."""
-from __future__ import annotations
-import os
-import httpx
+import asyncio
+import aiohttp
+import logging
 
-BASE44_ENDPOINT = "https://trade-qualified-pulse-live.base44.app/functions/log_price_tick"
+logger = logging.getLogger(__name__)
+
 
 class Base44Client:
-    """Posts price ticks to base44 TradeStream AI dashboard."""
-    
-    def __init__(self):
-        self.api_key = os.getenv("BASE44_AGENT_API_KEY", "")
-        self.enabled = bool(self.api_key)
-    
-    async def post_tick(self, symbol: str, price: float) -> bool:
+    """Client for posting price ticks to Base44 AI site builder."""
+
+    def __init__(self, agent_api_key: str):
         """
-        Post a single price tick to base44.
-        Returns True if successful, False otherwise (never raises).
+        Initialize Base44Client.
+
+        Args:
+            agent_api_key: The API key for authentication with Base44
         """
-        if not self.enabled:
-            return False
-        
+        self.agent_api_key = agent_api_key
+        self.endpoint = "https://trade-qualified-pulse-live.base44.app/functions/log_price_tick"
+
+    async def post_price_tick(self, symbol: str, price: float, ts: float | None = None) -> bool:
+        """
+        Post a single price tick to Base44.
+
+        Args:
+            symbol: Trading symbol (e.g., 'AAPL')
+            price: Current price
+            ts: Optional timestamp (defaults to server time)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        payload = {"symbol": symbol, "price": price}
+        if ts is not None:
+            payload["ts"] = ts
+
+        return await self._post(payload)
+
+    async def post_price_ticks(self, ticks: list[dict]) -> bool:
+        """
+        Post multiple price ticks in a single request.
+
+        Args:
+            ticks: List of tick dicts with 'symbol', 'price', and optional 'ts' keys
+
+        Returns:
+            True if successful, False otherwise
+        """
+        payload = {"ticks": ticks}
+        return await self._post(payload)
+
+    async def _post(self, payload: dict) -> bool:
+        """
+        Internal method to POST to the Base44 endpoint with proper auth.
+
+        Args:
+            payload: The JSON payload to send
+
+        Returns:
+            True if POST succeeded (2xx status), False otherwise
+        """
+        headers = {"Authorization": f"Bearer {self.agent_api_key}"}
+
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.post(
-                    BASE44_ENDPOINT,
-                    json={"symbol": symbol, "price": price},
-                    headers={"Authorization": f"Bearer {self.api_key}"}
-                )
-                return response.status_code in (200, 201, 204)
-        except Exception as exc:
-            print(f"[base44] post_tick failed: {exc}", flush=True)
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.endpoint, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status >= 200 and response.status < 300:
+                        logger.debug(f"Base44 POST successful: {response.status}")
+                        return True
+                    else:
+                        logger.warning(f"Base44 POST failed with status {response.status}")
+                        return False
+        except asyncio.TimeoutError:
+            logger.error("Base44 POST timeout")
+            return False
+        except Exception as e:
+            logger.error(f"Base44 POST error: {e}")
             return False
