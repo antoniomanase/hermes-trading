@@ -77,7 +77,7 @@ class Worker:
         self.tg_chat = os.getenv("TELEGRAM_CHAT_ID")
         self._last_status_mono = 0.0
          # Live price streaming to base44 TradeStream AI
-        self.base44 = Base44Client()
+        self.base44 = Base44Client(os.getenv("BASE44_AGENT_API_KEY"))  
 
     # -- io ---------------------------------------------------------------
     def _strategy(self) -> dict:
