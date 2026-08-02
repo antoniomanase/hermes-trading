@@ -40,6 +40,6 @@ objective:
   reward_risk_max: 1.5            # never chase a higher R:R than this
   low_variance:    true
 
-reflection_every:  30             # closed trades per reflection cycle
+reflection_every:  10             # closed trades per reflection cycle
 one_variable_only: true           # scientific-method guardrail
 mode:              "paper"        # never live until .env flags are flipped
