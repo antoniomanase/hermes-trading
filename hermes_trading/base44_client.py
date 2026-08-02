@@ -64,17 +64,18 @@ class Base44Client:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    self.endpoint, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                    self.endpoint, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=3)
                 ) as response:
                     if response.status >= 200 and response.status < 300:
                         logger.debug(f"Base44 POST successful: {response.status}")
                         return True
                     else:
-                        logger.warning(f"Base44 POST failed with status {response.status}")
+                        # non-2xx (e.g. auth) — debug only so it can't spam the deploy logs
+                        logger.debug(f"Base44 POST failed with status {response.status}")
                         return False
         except asyncio.TimeoutError:
-            logger.error("Base44 POST timeout")
+            logger.debug("Base44 POST timeout")
             return False
         except Exception as e:
-            logger.error(f"Base44 POST error: {e}")
+            logger.debug(f"Base44 POST error: {e}")
             return False

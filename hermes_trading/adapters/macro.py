@@ -12,7 +12,7 @@ from . import require_schema
 
 SCHEMA_VERSION = 1
 
-_TICKERS = {"vix": "^VIX", "dxy": "DX-Y.NYB", "us10y": "^TNX"}
+_TICKERS = {"vix": "^VIX", "dxy": "UUP", "us10y": "^TNX"}  # UUP: robust dollar-ETF proxy (DX-Y.NYB flaky on Railway)
 
 
 def _sync_fetch() -> dict:

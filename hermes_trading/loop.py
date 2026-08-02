@@ -221,9 +221,11 @@ class Worker:
             if last is None:
                 continue
 
-            #Stream price tick to base44 live dashboard
-            await self.base44.post_price_tick(symbol, last)
-          
+            # Stream price tick to base44 (fire-and-forget: must never block or
+            # slow the trade loop; disable entirely with HERMES_BASE44_ENABLED=0)
+            if os.getenv("HERMES_BASE44_ENABLED", "1") == "1":
+                asyncio.create_task(self.base44.post_price_tick(symbol, last))
+
             sig = lorentzian.classify(px, sig_cfg)
             a = lorentzian.atr(np.asarray(px["highs"], float),
                                np.asarray(px["lows"], float),
